@@ -71,6 +71,7 @@ def fetch_data(conn, bot_name, sample_size, history_depth):
         # Initialize conversation pieces
         question = ""
         conversation_context = ""
+        question_timestamp = None # Initialize question_timestamp to None to handle missing case
         
         # Identify the latest user question and the last chatbot response
         for msg in history_messages:
@@ -93,7 +94,7 @@ def fetch_data(conn, bot_name, sample_size, history_depth):
 
         # Response time
         response_timestamp = message_data['created_at']
-        message_data['response_time'] = ""
+        message_data['response_time'] = 1 # Default response time of 1 second if no question timestamp is found
 
         # Calculate response time if both timestamps exist
         if question_timestamp and response_timestamp:
@@ -213,15 +214,15 @@ def evaluate_message(content, question, conversation_context):
 def extract_sentiment_score(match):
     """ Helper function to extract sentiment score based on the match. """
     sentiment_map = {
-        "negative": -1,
-        "neutral": 0,
+        "negative": 0,
+        "neutral": 0.5,
         "positive": 1
     }
     
     if match:
         sentiment = match.group(0).lower()  # Extract the matched sentiment (lowercased)
-        return sentiment_map.get(sentiment, 0)  # Default to neutral (0) if not found
-    return 0  # Return neutral if no match found
+        return sentiment_map.get(sentiment, -1)  # Default to -1 if not found
+    return -1  # Return -1 if no match found
 
 def gpt_query(llm, prompt):
     with llm.chat_session():
@@ -321,7 +322,18 @@ def visualize_evaluation(eval_df):
 def main(db_path):
     random.seed(42)
     conn = connect_db(db_path)
-    #bot_name = "Savanna/Portal Support Bot"
+    
+    bot_name = "Savanna/Portal Support Bot"
+    sample_size = 100
+    history_depth = 2
+
+    sample_df = fetch_data(conn, bot_name, sample_size,history_depth)
+    eval_df = evaluate_sample(sample_df)
+    print(eval_df)
+
+    sample_df.to_csv('sample_savanna_df.csv', index=False) 
+    eval_df.to_csv('eval_savanna_df.csv', index=False) 
+
     bot_name = "ALX AiCE"
     sample_size = 100
     history_depth = 2
@@ -330,8 +342,8 @@ def main(db_path):
     eval_df = evaluate_sample(sample_df)
     print(eval_df)
 
-    sample_df.to_csv('sample_df.csv', index=False) 
-    eval_df.to_csv('eval_df.csv', index=False) 
+    sample_df.to_csv('sample_aice_df.csv', index=False) 
+    eval_df.to_csv('eval_aice_df.csv', index=False) 
 
     visualize_evaluation(eval_df)
     conn.close()

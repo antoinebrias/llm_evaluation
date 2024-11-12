@@ -8,7 +8,8 @@ import re
 
 
 # Load the GPT-4All model (replace with the correct path to your model file)
-llm = GPT4All("/home/antoine/Documents/Administratif/Emploi/alx/assignment/project_brias/src/gpt4all/Meta-Llama-3-8B-Instruct.Q4_0.gguf", verbose=False)
+#llm = GPT4All("/home/antoine/Documents/Administratif/Emploi/alx/assignment/project_brias/src/gpt4all/Meta-Llama-3-8B-Instruct.Q4_0.gguf")
+llm = GPT4All("/home/antoine/Documents/Administratif/Emploi/alx/assignment/project_brias/src/gpt4all/Phi-3-mini-4k-instruct-q4.gguf",device="kompute")
 
 
 # Function to connect to the SQLite database
@@ -18,7 +19,7 @@ def connect_db(db_path):
 
 # Function to fetch the data from the database
 def fetch_data(conn, bot_name,sample_size,history_depth):
-    # Define the main SQL query to fetch 10 random messages
+    # Define the main SQL query to fetch sample_size random messages
     main_query = """
     SELECT m.id, m.conversation_id, m.content, m.ordinality, m.created_at
     FROM messages m
@@ -94,7 +95,7 @@ def evaluate_message(message_content,conversation_history):
     Rate the truthfulness of the following chatbot message on a scale from 1 to 5, where:
     1 = completely false, and 5 = completely true.
 
-    Return only a numeric score (1-5), for example: 3
+    Return only a numeric score (1-5), for example: 3.
 
     Message:
     {message_content}
@@ -110,7 +111,7 @@ def evaluate_message(message_content,conversation_history):
     Rate the relevance of the following chatbot message to the user's query on a scale from 1 to 5, where:
     1 = completely irrelevant, and 5 = highly relevant.
 
-    Return only a numeric score (1-5), for example: 3
+    Return only a numeric score (1-5), for example: 3.
 
     Message:
     {message_content}
@@ -126,7 +127,7 @@ def evaluate_message(message_content,conversation_history):
     Rate the accuracy of the following chatbot message on a scale from 1 to 5, where:
     1 = completely inaccurate, and 5 = highly accurate.
 
-    Return only a numeric score (1-5), for example: 3
+    Return only a numeric score (1-5), for example: 3.
 
     Message:
     {message_content}
@@ -142,7 +143,7 @@ def evaluate_message(message_content,conversation_history):
     Rate how well the following chatbot message fits the context of the conversation on a scale from 1 to 5, where:
     1 = completely out of context, and 5 = highly appropriate.
 
-    Return only a numeric score (1-5), for example: 3
+    Return only a numeric score (1-5), for example: 3.
 
     Message:
     {message_content}
@@ -177,10 +178,10 @@ def gpt_query(llm, prompt):
     # Generate response from GPT-4All model
     with llm.chat_session():
         response = llm.generate(prompt, max_tokens=5)
-    print("*** prompt: ***")
-    print(prompt)
-    print("*** response: ***")
-    print(response)
+    #print("*** prompt: ***")
+    #print(prompt)
+    #print("*** response: ***")
+    #print(response)
 
     # Parse the response (assumes the model returns a numeric response)
     try:
@@ -193,8 +194,11 @@ def gpt_query(llm, prompt):
 # Function to evaluate all sampled messages
 def evaluate_sample(sample_df):
     evaluation_results = []
+    i_sample=1
     
     for _, row in sample_df.iterrows():
+        print(i_sample)
+        i_sample += 1
         message_content = row['content']
         conversation_history = row['conversation_history']
         
@@ -233,14 +237,18 @@ def visualize_evaluation(eval_df):
 
 # Main function to run the entire process
 def main(db_path):
+    # Set up random seed for reproducibility
+    random.seed(88)
+
     # Connect to the database
     conn = connect_db(db_path)
 
     # Bot selection
-    bot_name = "ALX AiCE"
+    #bot_name = "ALX AiCE"
+    bot_name = "Savanna/Portal Support Bot"
 
     # Sample size
-    sample_size = 3
+    sample_size = 100
 
     # Max number of messages to keep
     history_depth = 1
@@ -254,6 +262,10 @@ def main(db_path):
     # Show the evaluation results
     print(eval_df)
 
+    # Save data
+    sample_df.to_csv('sample_df.csv', index=False) 
+    eval_df.to_csv('eval_df.csv', index=False) 
+
     # Visualize the evaluation metrics
     visualize_evaluation(eval_df)
 
@@ -262,5 +274,5 @@ def main(db_path):
 
 # Run the script with your database path
 if __name__ == '__main__':
-    db_path = './data/sampled_conversations.db'  # Path to the SQLite database
+    db_path = '/home/antoine/Documents/Administratif/Emploi/alx/assignment/project_brias/data/sampled_conversations.db'  # Path to the SQLite database
     main(db_path)
