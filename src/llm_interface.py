@@ -33,6 +33,30 @@ metric_prompts = {
     Instructions:
     - Respond with one word: negative, neutral, or positive, followed by one short sentence explaining your choice about how the message fits in the context or not.
     \nMessage: {content}\nUser: {question}\nContext: {conversation_context}
+    """,
+
+    "response_conciseness": lambda content, question, conversation_context: f""" You are an AI specialized in evaluating the conciseness of chatbot responses. Your task is to rate how concise the following message is with the most appropriate word from this set: (negative, neutral, positive).
+    Instructions:
+    - Respond with one word: negative, neutral, or positive, followed by one short sentence explaining your choice about the conciseness or not of the message.
+    \nMessage: {content}\nUser: {question}\nContext: {conversation_context}
+    """,
+
+    "context_conciseness": lambda content, question, conversation_context: f""" You are an AI specialized in evaluating the conciseness of chatbot responses in relation to the context. Your task is to rate how concise the message is, considering the context, with the most appropriate word from this set: (negative, neutral, positive).
+    Instructions:
+    - Respond with one word: negative, neutral, or positive, followed by one short sentence explaining your choice about the conciseness of the response in relation to the context.
+    \nMessage: {content}\nUser: {question}\nContext: {conversation_context}
+    """,
+
+    "hallucination": lambda content, question, conversation_context: f""" You are an AI specialized in detecting hallucinations in chatbot responses. Your task is to rate the degree of hallucination in the message with the most appropriate word from this set: (negative, neutral, positive).
+    Instructions:
+    - Respond with one word: negative, neutral, or positive, followed by one short sentence explaining your choice about the hallucination or not in the response.
+    \nMessage: {content}\nUser: {question}\nContext: {conversation_context}
+    """,
+
+    "multi_query_accuracy": lambda content, question, conversation_context: f""" You are an AI specialized in evaluating multi-query accuracy. Your task is to rate the accuracy of a chatbot's response when handling multiple queries in the same conversation. Use the most appropriate word from this set: (negative, neutral, positive).
+    Instructions:
+    - Respond with one word: negative, neutral, or positive, followed by one short sentence explaining your choice about the accuracy in handling multiple queries.
+    \nMessage: {content}\nUser: {question}\nContext: {conversation_context}
     """
 }
 
