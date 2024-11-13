@@ -3,4 +3,11 @@ __pycache__/
 *.pyc
 
 # Ignore data files
-.md
+*.md
+
+# Ignore specific folders
+data/
+src/gpt4all/
+src/langfuse/
+src/__pycache__
+brias_env/
