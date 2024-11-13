@@ -40,8 +40,8 @@ def gpt_query(prompt):
     """Generate a response using the GPT-4All model and return the sentiment score."""
     with llm.chat_session():
         # Generate a response from the model using the given prompt
-        # and limit the response to 40 tokens, then strip any whitespace
-        response = llm.generate(prompt, max_tokens=30).strip()
+        # and limit the response to 30 tokens, then strip any whitespace
+        response = llm.generate(prompt, max_tokens=20).strip()
 
     logger.info("*** prompt ***")
     logger.info(prompt)

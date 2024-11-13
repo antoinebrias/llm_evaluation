@@ -1,7 +1,11 @@
-import plotly.express as px
+import matplotlib.pyplot as plt
+import logging 
+
+# Suppress verbose debug messages from Matplotlib
+logging.getLogger('matplotlib').setLevel(logging.WARNING)
 
 def visualize_evaluation(eval_df, metrics_dict):
-    """Visualize average evaluation scores for each metric using Plotly."""
+    """Visualize average evaluation scores for each metric using Matplotlib."""
 
     # Extract all metrics names
     metrics = [metric for category in metrics_dict.values() for metric in category]
@@ -9,19 +13,21 @@ def visualize_evaluation(eval_df, metrics_dict):
     # Calculate average scores for each metric
     avg_scores = eval_df[metrics].mean()
 
-    # Create a bar plot with Plotly
-    fig = px.bar(
-        x=avg_scores.index,
-        y=avg_scores.values,
-        title='Average Evaluation Scores for Each Metric',
-        labels={'x': 'Metric', 'y': 'Score'},
-    )
+    # Create a bar plot with Matplotlib
+    plt.figure(figsize=(10, 6))
+    plt.bar(avg_scores.index, avg_scores.values, color='skyblue')
 
-    fig.update_layout(
-        xaxis_title='Metric',
-        yaxis_title='Score',
-        xaxis_tickangle=-45,
-        bargap=0.2
-    )
+    # Add labels and title
+    plt.title('Average Evaluation Scores for Each Metric')
+    plt.xlabel('Metric')
+    plt.ylabel('Score')
 
-    fig.show()
+    # Rotate x-axis labels for better readability
+    plt.xticks(rotation=-45, ha='left')
+
+    # Add gridlines for better readability
+    plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+
+    # Show the plot
+    plt.tight_layout()
+    plt.show()

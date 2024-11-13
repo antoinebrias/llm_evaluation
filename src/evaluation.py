@@ -28,16 +28,24 @@ def evaluate_message(content, question, conversation_context, metrics_dict):
 
     return evaluation
 
+def get_metadata(current_row):
+        # Metadata
+    metadata = {
+        "message_id": current_row["id"],
+        "conversation_id": current_row["conversation_id"],
+        "content": current_row["content"],
+        "ordinality": current_row["ordinality"],
+        "question": current_row["question"],
+        "conversation_context": current_row["conversation_context"]
+    }
+    return metadata
 
 # Function to evaluate all sampled messages
 def evaluate_sample(sample_df,metrics_dict):
     evaluation_results = []
-    i_sample = 1
-    
-    for _, row in sample_df.iterrows():
-        logger.info("Row")
-        logger.info(i_sample)
-        i_sample += 1
+
+    for i_sample, row in sample_df.iterrows():
+        logger.info(f"Row {i_sample + 1}: {row.to_dict()}")
 
         # Fetch the context data for metrics evaluation
         content = row['content']
@@ -45,14 +53,7 @@ def evaluate_sample(sample_df,metrics_dict):
         conversation_context = row['conversation_context']
         
         # Metadata
-        metadata = {
-            "message_id": row["id"],
-            "conversation_id": row["conversation_id"],
-            "content": row["content"],
-            "ordinality": row["ordinality"],
-            "question": row["question"],
-            "conversation_context": row["conversation_context"]
-        }
+        metadata = get_metadata(row)
 
         # LLM-based Metrics evaluation
         llm_eval_results = evaluate_message(content, question, conversation_context, metrics_dict)
@@ -72,20 +73,30 @@ def evaluate_sample(sample_df,metrics_dict):
         })
         
         # Set the trace for Langfuse
-        trace = langfuse.trace(metadata=metadata,session_id=row["bot_name"],user_id="dev")
-        
-        # Retrieve the relevant chunks
-        trace.span(
-            name = "generation", input={'question': question, 'context': conversation_context}, output={'response': content}
-        )
-
-        # Fill the trace metrics
-        # LLM-based metrics traces
-        for metric in metrics_dict["llm-based"]:
-            trace.score(name=metric, value=llm_eval_results[metric],comment = llm_eval_results[f"{metric}_output"])
-        # Operational metrics traces
-        for metric in metrics_dict["operational"]:
-            trace.score(name=metric, value=operational_results[metric])
+        try:
+            set_trace(row, metadata, content, question, conversation_context,operational_results, llm_eval_results, metrics_dict)
+        except:
+            logging.error(f"Could not process trace for id: {row['id']}")
 
     eval_df = pd.DataFrame(evaluation_results)
     return eval_df
+
+
+def set_trace(row, metadata, content, question, conversation_context,operational_results, llm_eval_results, metrics_dict):
+        # Set the trace for Langfuse
+    trace = langfuse.trace(metadata=metadata,session_id=row["bot_name"],user_id="dev")
+    
+    # Retrieve the relevant chunks
+    trace.span(
+        name = "generation", input={'question': question, 'context': conversation_context}, output={'response': content}
+    )
+
+    # Fill the trace metrics
+    # LLM-based metrics traces
+    for metric in metrics_dict["llm-based"]:
+        trace.score(name=metric, value=llm_eval_results[metric],comment = llm_eval_results[f"{metric}_output"])
+    # Operational metrics traces
+    for metric in metrics_dict["operational"]:
+        trace.score(name=metric, value=operational_results[metric])
+
+    langfuse.flush()

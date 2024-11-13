@@ -13,9 +13,11 @@ def main():
     conn = connect_db(db_path)
 
     # Define bot configurations
+    # sample_size: number of random samples from the database
+    # history_depth: number of messages to be retrieved in the context
     bots = [
-        {"name": "Savanna/Portal Support Bot", "sample_size": 1, "history_depth": 2},
-       # {"name": "ALX AiCE", "sample_size": 2, "history_depth": 2},
+        {"name": "Savanna/Portal Support Bot", "sample_size": 2, "history_depth": 2},
+        {"name": "ALX AiCE", "sample_size": 2, "history_depth": 2},
     ]
 
     # define metrics
@@ -28,7 +30,10 @@ def main():
     for bot in bots:
         logger.info(bot['name'])
 
+        # perform the database call, and compute operational metrics
         sample_df = fetch_random_data(conn,bot,metrics_dict)
+
+        # evaluate llm-based metrics and return a dataframe
         eval_df = evaluate_sample(sample_df,metrics_dict)
 
         # Save results to CSV
