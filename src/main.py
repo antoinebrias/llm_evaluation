@@ -1,4 +1,4 @@
-from database import connect_db, fetch_data
+from database_interface import connect_db, fetch_random_data
 from evaluation import evaluate_sample
 from visualization import visualize_evaluation
 import pandas as pd
@@ -28,7 +28,7 @@ def main():
     for bot in bots:
         logger.info(bot['name'])
 
-        sample_df = fetch_data(conn, bot['name'], bot['sample_size'], bot['history_depth'],metrics_dict)
+        sample_df = fetch_random_data(conn,bot,metrics_dict)
         eval_df = evaluate_sample(sample_df,metrics_dict)
 
         # Save results to CSV
