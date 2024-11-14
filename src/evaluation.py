@@ -25,7 +25,6 @@ langfuse_host = os.getenv("LANGFUSE_HOST", "http://langfuse-server:3000")
 
 # Initialize Langfuse
 langfuse = Langfuse()
-logger.info(langfuse.auth_check())
 
 # Function to evaluate the message for each llm-based metric 
 def evaluate_message(content, question, conversation_context, metrics_dict):
@@ -63,7 +62,7 @@ def evaluate_sample(sample_df,metrics_dict):
     evaluation_results = []
 
     for i_sample, row in sample_df.iterrows():
-        logger.info(f"Row {i_sample + 1}: {row.to_dict()}")
+        logger.info(f"Row {i_sample + 1}: sample id={row['id']}")
 
         # Fetch the context data for metrics evaluation
         content = row['content']
@@ -76,12 +75,10 @@ def evaluate_sample(sample_df,metrics_dict):
         # LLM-based Metrics evaluation
         llm_eval_results = evaluate_message(content, question, conversation_context, metrics_dict)
 
-
         # Non LLM-based metrics gathering
         operational_results = {}
         for metric in metrics_dict["operational"]:
             operational_results[metric] = row[metric]
-
 
         # Add metadata to evaluation_results (dataframe output)
         evaluation_results.append({
@@ -98,9 +95,7 @@ def evaluate_sample(sample_df,metrics_dict):
 
 def set_trace(row, metadata, content, question, conversation_context,operational_results, llm_eval_results, metrics_dict):
         # Set the trace for Langfuse
-    logger.info("------trace debug--------")
-    trace = langfuse.trace(metadata=metadata,session_id=row["bot_name"],user_id="dev")
-    logger.info(trace.get_trace_url())
+    trace = langfuse.trace(name='live',metadata=metadata,session_id=row["bot_name"],user_id="dev")
 
     # Retrieve the relevant chunks
     trace.span(

@@ -66,11 +66,6 @@ def gpt_query(prompt):
         # and limit the response to 30 tokens, then strip any whitespace
         response = llm.generate(prompt, max_tokens=20).strip()
 
-    logger.info("*** prompt ***")
-    logger.info(prompt)
-    logger.info("*** response ***")
-    logger.info(response)
-
     # Use regex to search for a sentiment label in the response (negative, neutral, or positive)
     match = re.search(r'(negative|neutral|positive)', response, re.IGNORECASE)
     score = {"negative": 0, "neutral": 0.5, "positive": 1}.get(match.group(0).lower(), -1) if match else -1

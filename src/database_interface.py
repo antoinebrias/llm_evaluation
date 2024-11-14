@@ -12,8 +12,10 @@ def connect_db(db_path):
     return sqlite3.connect(db_path)
 
 
-def fetch_random_data(conn, bot, metrics_dict):
+def fetch_random_data(db_path, bot, metrics_dict):
     """Fetch messages and historical context from the database for a specified bot."""
+    # Connection to the database
+    conn = connect_db(db_path)
 
     bot_name = bot['name']
     sample_size = bot['sample_size']
@@ -60,6 +62,7 @@ def fetch_random_data(conn, bot, metrics_dict):
                 message_data['response_time'] = response_time(message_data,question_timestamp)
 
 
+    conn.close()
     return pd.DataFrame(data_with_history)
 
 

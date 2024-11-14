@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from langfuse import Langfuse
 import requests
 import json
+import pandas as pd
 
 # export and import langfuse traces function
 
@@ -24,8 +25,9 @@ api_base = os.getenv("LANGFUSE_HOST")
 llm_model_path = os.getenv("LLM_MODEL_PATH")
 db_path = os.getenv("DB_PATH")
 
-# Initialize Langfuse 
-langfuse = Langfuse()
+# Initialize Langfuse with a sample rate of 0.2
+langfuse = Langfuse(sample_rate=0.2)
+
 
 # Fetch traces using langfuse library method
 def fetch_and_export_traces(file_path="traces_export.csv"):
@@ -144,12 +146,16 @@ def import_traces(file_path="traces.csv"):
             for score_name in score_names:
                 # Find the corresponding score ID from the row (assumed that it follows the naming convention)
                 score_id_field = row[f'{score_name}_id']
-                score_value_field = float(row[f'{score_name}_value']) if row[f'{score_name}_value'].isnumeric() else row[f'{score_name}_value']
+                score_value_field = float(row[f'{score_name}_value'])# if row[f'{score_name}_value'].isnumeric() else row[f'{score_name}_value']
                 score_comment_field = row[f'{score_name}_comment']
 
                 # Fill the trace metrics
                 trace.score(name=score_name, value=score_value_field,comment = score_comment_field)
-            
+
+    # Convert the list of dictionaries to a DataFrame, for visualization.
+    traces_df = pd.read_csv(file_path)
+    return traces_df
+
 # Function to preprocess metadata to fix single quotes in JSON
 def fix_json_quotes(metadata_str):
     # Step 1: Correct the key formatting (add double quotes around keys)
