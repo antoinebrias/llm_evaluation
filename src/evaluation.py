@@ -1,13 +1,31 @@
 from llm_interface import gpt_query, llm, metric_prompts
 import pandas as pd
 from langfuse import Langfuse
+from langfuse.decorators import langfuse_context
+from config import langfuse_host,public_key,secret_key
 import config
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
+logger.info("langfuse_host")
+logger.info(langfuse_host)
+logger.info(langfuse_host)
+logger.info(public_key)
+logger.info(secret_key)
+logger.info(os.getenv("LANGFUSE_INIT_PROJECT_SECRET_KEY"))
+
+import httpx
+import os
+
+# Ensure `LANGFUSE_HOST` points to the internal URL of langfuse-server in Docker
+langfuse_host = os.getenv("LANGFUSE_HOST", "http://langfuse-server:3000")
+
+
 # Initialize Langfuse
 langfuse = Langfuse()
+logger.info(langfuse.auth_check())
 
 # Function to evaluate the message for each llm-based metric 
 def evaluate_message(content, question, conversation_context, metrics_dict):
@@ -72,11 +90,7 @@ def evaluate_sample(sample_df,metrics_dict):
             **operational_results,
         })
         
-        # Set the trace for Langfuse
-        try:
-            set_trace(row, metadata, content, question, conversation_context,operational_results, llm_eval_results, metrics_dict)
-        except:
-            logging.error(f"Could not process trace for id: {row['id']}")
+        set_trace(row, metadata, content, question, conversation_context,operational_results, llm_eval_results, metrics_dict)
 
     eval_df = pd.DataFrame(evaluation_results)
     return eval_df
@@ -84,8 +98,10 @@ def evaluate_sample(sample_df,metrics_dict):
 
 def set_trace(row, metadata, content, question, conversation_context,operational_results, llm_eval_results, metrics_dict):
         # Set the trace for Langfuse
+    logger.info("------trace debug--------")
     trace = langfuse.trace(metadata=metadata,session_id=row["bot_name"],user_id="dev")
-    
+    logger.info(trace.get_trace_url())
+
     # Retrieve the relevant chunks
     trace.span(
         name = "generation", input={'question': question, 'context': conversation_context}, output={'response': content}
@@ -99,4 +115,5 @@ def set_trace(row, metadata, content, question, conversation_context,operational
     for metric in metrics_dict["operational"]:
         trace.score(name=metric, value=operational_results[metric])
 
-    langfuse.flush()
+
+

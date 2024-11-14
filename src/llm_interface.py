@@ -3,11 +3,16 @@ import config
 from config import llm_model_path
 import logging
 import re
+import os
 
 logger = logging.getLogger(__name__)
 
+
+# Retrieve the model path from environment variable
+abs_llm_model_path = os.path.join(os.path.dirname(__file__), os.getenv('LLM_MODEL_PATH'))
 # Load the model once at module level
-llm = GPT4All(llm_model_path, device="kompute",verbose=False)
+llm = GPT4All(abs_llm_model_path, device="cpu",verbose=False,allow_download=False)
+#llm = GPT4All(llm_model_path, device="kompute",verbose=False,allow_download=False)
 
 # Dictionary of prompts, where each metric's prompt is a lambda function that takes content, question, and context
 metric_prompts = {
@@ -38,12 +43,6 @@ metric_prompts = {
     "response_conciseness": lambda content, question, conversation_context: f""" You are an AI specialized in evaluating the conciseness of chatbot responses. Your task is to rate how concise the following message is with the most appropriate word from this set: (negative, neutral, positive).
     Instructions:
     - Respond with one word: negative, neutral, or positive, followed by one short sentence explaining your choice about the conciseness or not of the message.
-    \nMessage: {content}\nUser: {question}\nContext: {conversation_context}
-    """,
-
-    "context_conciseness": lambda content, question, conversation_context: f""" You are an AI specialized in evaluating the conciseness of chatbot responses in relation to the context. Your task is to rate how concise the message is, considering the context, with the most appropriate word from this set: (negative, neutral, positive).
-    Instructions:
-    - Respond with one word: negative, neutral, or positive, followed by one short sentence explaining your choice about the conciseness of the response in relation to the context.
     \nMessage: {content}\nUser: {question}\nContext: {conversation_context}
     """,
 
