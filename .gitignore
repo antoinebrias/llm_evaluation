@@ -4,10 +4,13 @@ __pycache__/
 
 # Ignore data files
 *.md
+*.csv
 
 # Ignore specific folders
-data/
 src/gpt4all/
 src/langfuse/
 src/__pycache__
 brias_env/
+
+# Ignore .env
+.env
