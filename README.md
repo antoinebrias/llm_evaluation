@@ -1,6 +1,6 @@
 # Chatbot Performance Evaluation Framework
 
-This project provides a framework to evaluate the performance of chatbots using various metrics. The system leverages a local Langfuse server to retrieve and analyze traces from chatbot interactions, computing scores based on predefined operational and LLM-based metrics. The goal is to simulate both past and live environments, analyze chatbot performance, and visualize the results for meaningful insights.
+This project provides a framework to evaluate the performance of chatbots using various metrics. The system leverages a local Langfuse server to retrieve and analyze traces from chatbot interactions, computing scores based on predefined operational and LLM-based metrics. The goal is to simulate both past and live environments, analyze chatbot performance, and visualize the results for meaningful insights. Importantly, the framework has been designed to run offline, with local server and local LLM instance.
 
 ## Features
 
@@ -54,6 +54,21 @@ This project provides a framework to evaluate the performance of chatbots using 
 
     This will download the necessary images, build the containers, and start the services (langfuse server and its postgresql database, and the python app).
 
+4. Access the Langfuse Server
+
+    Once the Docker container is up and running, open your web browser and navigate to the following URL:
+
+    [http://localhost:4000](http://localhost:4000)
+
+5. Login to the Langfuse Interface
+
+    Use the following credentials to log into the Langfuse dashboard:
+
+    - **Email**: `user@example.com` 
+    - **Username**: `JohnDoe`
+    - **Password**: `password123`
+    
+     In the Langfuse interface, navigate to the "llm-evaluation" project to view trace data and performance metrics. The dashboard will display real-time information on chatbot interactions, including message traces, response times, and relevant scores for different metrics.
 
 
 ## Usage
@@ -61,18 +76,72 @@ This project provides a framework to evaluate the performance of chatbots using 
 1. **Populate Langfuse traces**: 
    The `main.py` script first loads saved traces from the CSV file (`traces_export.csv`) into the Langfuse server.
 
-2. **Metrics Definition**:
+2. **Visualization**:
+   The results of the load traces are visualized through charts that show mean scores for each bot across the various evaluation metrics.
+
+3. **Metrics Definition**:
    The framework supports both operational (i.e. non-LLM based metrics) and LLM-based metrics. The operational metrics focus on quantitative aspects (e.g., response time), while LLM-based metrics evaluate the quality of chatbot responses based on factors like truthfulness, relevance, accuracy, and conciseness.
 
-3. **Bot Configuration**:
+4. **Bot Configuration**:
    The system simulates interactions with multiple chatbots, fetching random sample data from a database and evaluating them. You can define the number of samples and history depth for each bot configuration.
 
-4. **Simulation**:
+5. **Simulation**:
    Once the saved traces are populated, the system simulates a live environment by fetching new data, evaluating performance metrics, and visualizing the results.
 
-5. **Visualization**:
-   The results are visualized through graphs and charts that show mean scores for each bot across the various evaluation metrics.
+6. **Traces analysis**:
+    The Langfuse interface provides tools for exploring and analyzing individual traces, allowing you to drill down into specific interactions. This includes details on response times, metrics scored, and other performance indicators for comprehensive trace analysis.
 
+
+### Architecture
+      ├── data/ # Directory for data storage 
+
+      ├── gpt4all/ # GPT-4All model files (or other models) 
+
+      ├── src/ # Source code for the application 
+
+      | ├── unit_tests/ # Unit tests for different components 
+
+      | ├── .... (python files)       
+
+      │ └── main.py # Main entry point for running the project 
+
+      ├── requirements.txt # List of project dependencies 
+
+      ├── .env # Environment variables (API keys, URLs)
+
+      ├── .gitignore # Git ignore rules to exclude unnecessary files 
+
+      ├── docker-compose.yml # Docker Compose file for multi-container setup 
+
+      └── Dockerfile # Dockerfile for containerizing the app
+
+### Main Technologies Used
+
+- **GPT-4All**: For message evaluation based on LLM-based metrics.
+- **Langfuse**: For trace logging and monitoring chatbot interactions. A local server runs with a headless configuration to show the capabilities of the framework.
+- **pandas**: For data manipulation and storage of evaluation results in DataFrames.
+- **Matplotlib/Plotly**: For data visualization.
+- **Logging**: Python’s built-in logging module is used for detailed logs.
+- **SQL**: For fetching chatbot response data.
+- **Unit Testing (unittest)**:  The project uses **unittest** for testing key components, with **unittest.mock** to mock external services like Langfuse and GPT-4All. 
+
+## Future Improvements
+
+The project is designed with flexibility in mind, enabling future enhancements and integrations. Below are some key areas for future improvements:
+
+### 1. **Fine-tuning Using ALX Internal Documents**
+
+   - **Objective**: Leverage ALX's internal documents or any proprietary datasets to fine-tune the existing language model (LLM), improving its performance in response evaluation (accuracy for instance) or on specialized tasks.
+
+### 2. **Exploring Other Models**
+
+   - **Objective**: I was limited by the performances of my laptop and the use of a small local LLM. Investigate and integrate alternative language models to provide more flexibility and robustness to the application.
+
+### 3. **Including Human Evaluation**
+   - **Objective**: Human evaluation remains the gold standard in chatbot evaluation. Creating an evaluation module to collect user satisfaction may provide valuable insights.
+
+### 4. **Including Other Metrics**
+   - **Objective**: metrics related to a set of reference responses like (BLEU and ROUGE) may also improve the performances.
 
 ## Contact
 
