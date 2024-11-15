@@ -86,4 +86,4 @@ def visualize_score_means_by_bot(trace_df):
         plt.close()
     
     except Exception as e:
-        logger.info(f"An unexpected error occurred in visualize_score_means_by_bot: {e}")
+        logger.error(f"An unexpected error occurred in visualize_score_means_by_bot: {e}")
