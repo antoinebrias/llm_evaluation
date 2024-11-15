@@ -38,7 +38,7 @@ langfuse_host = os.getenv("LANGFUSE_HOST", "http://langfuse-server:3000")
 
 # Initialize Langfuse with a sample rate of 0.2
 langfuse = Langfuse(sample_rate=0.2)
-langfuse.auth_check()
+#langfuse.auth_check()
 
 
 # Fetch traces using langfuse library method
@@ -96,7 +96,7 @@ def fetch_and_export_traces(file_path="traces.csv"):
         writer.writeheader()
         writer.writerows(trace_dicts)
 
-    print(f"Traces exported successfully to {file_path}")
+    logger.info(f"Traces exported successfully to {file_path}")
 
 
 # Function to get score details
@@ -169,13 +169,13 @@ def import_traces(file_path=traces_export_path):
             traces_df = pd.read_csv(file_path)
 
     except FileNotFoundError:
-        logger.info(f"Error: The file '{file_path}' was not found.")
+        logger.error(f"Error: The file '{file_path}' was not found.")
     except PermissionError:
-        logger.info(f"Error: Permission denied for file '{file_path}'.")
+        logger.error(f"Error: Permission denied for file '{file_path}'.")
     except csv.Error as e:
-        logger.info(f"Error reading CSV file: {e}")
+        logger.error(f"Error reading CSV file: {e}")
     except Exception as e:
-        logger.info(f"An unexpected error in import_trace occurred: {e}")
+        logger.error(f"An unexpected error in import_trace occurred: {e}")
 
     return traces_df
 

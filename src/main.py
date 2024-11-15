@@ -14,13 +14,10 @@ logger = logging.getLogger(__name__)
 
 def main():
     # Populating langfuse traces with previously saved traces
-    print(traces_export_path)
     saved_traces_df = import_traces(file_path=traces_export_path)
 
     # Visualize the mean score by bot for each metric
     visualize_score_means_by_bot(saved_traces_df)
-
-
 
     # Live simulation run
 
@@ -43,11 +40,14 @@ def main():
     for bot in bots:
         logger.info(bot['name'])
 
-        # perform random database call to simulate live environment, and compute operational metrics
-        sample_df = fetch_random_data(db_path,bot,metrics_dict)
+        try:
+            # perform random database call to simulate live environment, and compute operational metrics
+            sample_df = fetch_random_data(db_path,bot,metrics_dict)
 
-        # evaluate llm-based metrics, get traces and return a dataframe
-        eval_df = evaluate_sample(sample_df,metrics_dict)
+            # evaluate llm-based metrics, get traces and return a dataframe
+            eval_df = evaluate_sample(sample_df,metrics_dict)
+        except Exception as e:
+            logger.info(f"An unexpected error occurred in main: {e}")
 
 
         # Save results for the new traces to CSV

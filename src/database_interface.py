@@ -14,56 +14,59 @@ def connect_db(db_path):
 
 def fetch_random_data(db_path, bot, metrics_dict):
     """Fetch messages and historical context from the database for a specified bot."""
-    # Connection to the database
-    conn = connect_db(db_path)
+    try:
+        # Connection to the database
+        conn = connect_db(db_path)
 
-    bot_name = bot['name']
-    sample_size = bot['sample_size']
-    history_depth = bot['history_depth']
+        bot_name = bot['name']
+        sample_size = bot['sample_size']
+        history_depth = bot['history_depth']
 
-    # SQL query to fetch random bot messages
-    main_query = """
-    SELECT m.id, m.conversation_id, m.content, m.ordinality, m.created_at
-    FROM messages m
-    JOIN conversations c ON m.conversation_id = c.conversation_id
-    JOIN bots b ON c.bot_id = b.bot_id
-    WHERE m.ordinality > 0 AND m.machine = 1 AND b.bot_name = ?
-    ORDER BY RANDOM() LIMIT ?;
-    """
-    cursor = conn.cursor()
-    cursor.execute(main_query, (bot_name, sample_size))
-    selected_messages = cursor.fetchall()
-    columns = [column[0] for column in cursor.description]
-    
-    data_with_history = []
-    
-    for message in selected_messages:
-        message_data = dict(zip(columns, message))
-        
-        context_query = """
-        SELECT content, machine, ordinality, created_at
-        FROM messages
-        WHERE conversation_id = ? AND ordinality < ?
-        ORDER BY ordinality DESC LIMIT ?;
+        # SQL query to fetch random bot messages
+        main_query = """
+        SELECT m.id, m.conversation_id, m.content, m.ordinality, m.created_at
+        FROM messages m
+        JOIN conversations c ON m.conversation_id = c.conversation_id
+        JOIN bots b ON c.bot_id = b.bot_id
+        WHERE m.ordinality > 0 AND m.machine = 1 AND b.bot_name = ?
+        ORDER BY RANDOM() LIMIT ?;
         """
-        cursor.execute(context_query, (message_data['conversation_id'], message_data['ordinality'], history_depth))
-        history_messages = cursor.fetchall()
+        cursor = conn.cursor()
+        cursor.execute(main_query, (bot_name, sample_size))
+        selected_messages = cursor.fetchall()
+        columns = [column[0] for column in cursor.description]
+        
+        data_with_history = []
+        
+        for message in selected_messages:
+            message_data = dict(zip(columns, message))
+            
+            context_query = """
+            SELECT content, machine, ordinality, created_at
+            FROM messages
+            WHERE conversation_id = ? AND ordinality < ?
+            ORDER BY ordinality DESC LIMIT ?;
+            """
+            cursor.execute(context_query, (message_data['conversation_id'], message_data['ordinality'], history_depth))
+            history_messages = cursor.fetchall()
 
-        # Construct conversation context and question
-        message_data['question'], message_data['conversation_context'], question_timestamp = construct_context(history_messages)
-        data_with_history.append(message_data)
+            # Construct conversation context and question
+            message_data['question'], message_data['conversation_context'], question_timestamp = construct_context(history_messages)
+            data_with_history.append(message_data)
 
-        # Assign the bot name 
-        message_data['bot_name'] = bot_name
+            # Assign the bot name 
+            message_data['bot_name'] = bot_name
 
-        # Example of an Operational metric: response time
-        for metric in metrics_dict["operational"]:
-            if metric == "response_time":
-                message_data['response_time'] = response_time(message_data,question_timestamp)
+            # Example of an Operational metric: response time
+            for metric in metrics_dict["operational"]:
+                if metric == "response_time":
+                    message_data['response_time'] = response_time(message_data,question_timestamp)
 
 
-    conn.close()
-    return pd.DataFrame(data_with_history)
+        conn.close()
+        return pd.DataFrame(data_with_history)
+    except Exception as e:
+        logger.error(f"An unexpected error occurred in fetch_random_data: {e}")
 
 
 def construct_context(history_messages):

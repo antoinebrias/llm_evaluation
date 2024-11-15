@@ -83,7 +83,7 @@ def evaluate_sample(sample_df,metrics_dict):
 
         eval_df = pd.DataFrame(evaluation_results)
     except Exception as e:
-        logger.info(f"An unexpected error occurred in evaluate_sample: {e}")
+        logger.error(f"An unexpected error occurred in evaluate_sample: {e}")
 
     return eval_df
 
