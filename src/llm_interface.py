@@ -7,12 +7,16 @@ import os
 
 logger = logging.getLogger(__name__)
 
+llm = []
+try:
+    # Retrieve the model path from environment variable
+    abs_llm_model_path = os.path.join(os.path.dirname(__file__), os.getenv('LLM_MODEL_PATH'))
+    # Load the model once at module level
+    llm = GPT4All(abs_llm_model_path, device="cpu",verbose=False,allow_download=False)
+    #llm = GPT4All(llm_model_path, device="kompute",verbose=False,allow_download=False)
+except Exception as e:
+    logger.info(f"An unexpected error occurred while loading the llm model. The file is probably missing: {e}")
 
-# Retrieve the model path from environment variable
-abs_llm_model_path = os.path.join(os.path.dirname(__file__), os.getenv('LLM_MODEL_PATH'))
-# Load the model once at module level
-llm = GPT4All(abs_llm_model_path, device="cpu",verbose=False,allow_download=False)
-#llm = GPT4All(llm_model_path, device="kompute",verbose=False,allow_download=False)
 
 # Dictionary of prompts, where each metric's prompt is a lambda function that takes content, question, and context
 metric_prompts = {
