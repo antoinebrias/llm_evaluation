@@ -47,9 +47,8 @@ This project provides a framework to evaluate the performance of chatbots using 
 
     This project uses Docker to set up a local Langfuse server for trace retrieval. Build and run the Docker container using the following commands:
 
-    ```bash
-    docker-compose build  
-    docker-compose up
+    ```bash 
+    docker compose up
     ```
 
     This will download the necessary images, build the containers, and start the services (langfuse server and its postgresql database, and the python app).
@@ -74,7 +73,7 @@ This project provides a framework to evaluate the performance of chatbots using 
 ## Usage
 
 1. **Populate Langfuse traces**: 
-   The `main.py` script first loads saved traces from the CSV file (`traces_export.csv`) into the Langfuse server.
+   The `main.py` script first loads saved traces from the CSV file (`traces_export.csv`) into the Langfuse server. These traces have the name 'import' in Langfuse. The Session tag differentiates the two bots (ALX AiCE and Savanna).
 
 2. **Visualization**:
    The results of the load traces are visualized through charts that show mean scores for each bot across the various evaluation metrics.
@@ -86,7 +85,7 @@ This project provides a framework to evaluate the performance of chatbots using 
    The system simulates interactions with multiple chatbots, fetching random sample data from a database and evaluating them. You can define the number of samples and history depth for each bot configuration.
 
 5. **Simulation**:
-   Once the saved traces are populated, the system simulates a live environment by fetching new data, evaluating performance metrics, and visualizing the results.
+   Once the saved traces are populated, the system simulates a live environment by fetching new data, evaluating performance metrics, and visualizing the results. These traces have the name 'live' in Langfuse.
 
 6. **Traces analysis**:
     The Langfuse interface provides tools for exploring and analyzing individual traces, allowing you to drill down into specific interactions. This includes details on response times, metrics scored, and other performance indicators for comprehensive trace analysis.
@@ -124,6 +123,11 @@ This project provides a framework to evaluate the performance of chatbots using 
 - **Logging**: Python’s built-in logging module is used for detailed logs.
 - **SQL**: For fetching chatbot response data.
 - **Unit Testing (unittest)**:  The project uses **unittest** for testing key components, with **unittest.mock** to mock external services like Langfuse and GPT-4All. 
+
+## To-do list
+
+- Fix metadata extraction. Sometime the metadata are badly formatted. Need to be fixed.
+- Update and other metrics. They are currently based on sentiment analysis with 'negative','neutral','positive' output (converted to 0, 0.5, 1 ouptut values)
 
 ## Future Improvements
 

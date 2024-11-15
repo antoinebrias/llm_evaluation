@@ -64,13 +64,14 @@ services:
       - PORT=3030
       - LLM_MODEL_PATH=/gpt4all/Phi-3-mini-4k-instruct-q4.gguf #${LLM_MODEL_PATH}
       - DB_PATH=/data/sampled_conversations.db
+      - TRACES_EXPORT_PATH=/data/traces_export.csv
     depends_on:
       - langfuse-server
     ports:
       - "4040:3030"  
     volumes:
       - ./src:/src  # Maps project files for development
-      - ./src/gpt4all:/gpt4all
+      - ./gpt4all:/gpt4all
       - ./data:/data
 
 volumes:

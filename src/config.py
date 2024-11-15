@@ -9,6 +9,7 @@ load_dotenv(dotenv_path='../.env')
 
 # Configuration variables
 db_path = os.getenv("DB_PATH")
+traces_export_path = os.getenv("TRACES_EXPORT_PATH")
 llm_model_path = os.getenv("LLM_MODEL_PATH")
 public_key = os.getenv("LANGFUSE_INIT_PROJECT_PUBLIC_KEY")
 secret_key = os.getenv("LANGFUSE_INIT_PROJECT_SECRET_KEY")

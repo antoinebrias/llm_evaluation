@@ -9,19 +9,11 @@ import os
 
 logger = logging.getLogger(__name__)
 
-logger.info("langfuse_host")
-logger.info(langfuse_host)
-logger.info(langfuse_host)
-logger.info(public_key)
-logger.info(secret_key)
-logger.info(os.getenv("LANGFUSE_INIT_PROJECT_SECRET_KEY"))
-
 import httpx
 import os
 
 # Ensure `LANGFUSE_HOST` points to the internal URL of langfuse-server in Docker
 langfuse_host = os.getenv("LANGFUSE_HOST", "http://langfuse-server:3000")
-
 
 # Initialize Langfuse
 langfuse = Langfuse()
@@ -60,36 +52,39 @@ def get_metadata(current_row):
 # Function to evaluate all sampled messages
 def evaluate_sample(sample_df,metrics_dict):
     evaluation_results = []
+    try:
+        for i_sample, row in sample_df.iterrows():
+            logger.info(f"Row {i_sample + 1}: sample id={row['id']}")
 
-    for i_sample, row in sample_df.iterrows():
-        logger.info(f"Row {i_sample + 1}: sample id={row['id']}")
+            # Fetch the context data for metrics evaluation
+            content = row['content']
+            question = row['question']
+            conversation_context = row['conversation_context']
+            
+            # Metadata
+            metadata = get_metadata(row)
 
-        # Fetch the context data for metrics evaluation
-        content = row['content']
-        question = row['question']
-        conversation_context = row['conversation_context']
-        
-        # Metadata
-        metadata = get_metadata(row)
+            # LLM-based Metrics evaluation
+            llm_eval_results = evaluate_message(content, question, conversation_context, metrics_dict)
 
-        # LLM-based Metrics evaluation
-        llm_eval_results = evaluate_message(content, question, conversation_context, metrics_dict)
+            # Non LLM-based metrics gathering
+            operational_results = {}
+            for metric in metrics_dict["operational"]:
+                operational_results[metric] = row[metric]
 
-        # Non LLM-based metrics gathering
-        operational_results = {}
-        for metric in metrics_dict["operational"]:
-            operational_results[metric] = row[metric]
+            # Add metadata to evaluation_results (dataframe output)
+            evaluation_results.append({
+                **metadata, 
+                **llm_eval_results,
+                **operational_results,
+            })
+            
+            set_trace(row, metadata, content, question, conversation_context,operational_results, llm_eval_results, metrics_dict)
 
-        # Add metadata to evaluation_results (dataframe output)
-        evaluation_results.append({
-            **metadata, 
-            **llm_eval_results,
-            **operational_results,
-        })
-        
-        set_trace(row, metadata, content, question, conversation_context,operational_results, llm_eval_results, metrics_dict)
+        eval_df = pd.DataFrame(evaluation_results)
+    except Exception as e:
+        logger.info(f"An unexpected error occurred in evaluate_sample: {e}")
 
-    eval_df = pd.DataFrame(evaluation_results)
     return eval_df
 
 

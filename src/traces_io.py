@@ -12,6 +12,9 @@ from langfuse import Langfuse
 import requests
 import json
 import pandas as pd
+import logging
+
+logger = logging.getLogger(__name__)
 
 # export and import langfuse traces function
 
@@ -19,18 +22,27 @@ import pandas as pd
 load_dotenv()
 
 # Retrieve Langfuse API keys from .env
-public_key = os.getenv("LANGFUSE_PUBLIC_KEY")
-secret_key = os.getenv("LANGFUSE_SECRET_KEY")
+public_key = os.getenv("LANGFUSE_INIT_PROJECT_PUBLIC_KEY")
+secret_key = os.getenv("LANGFUSE_INIT_PROJECT_SECRET_KEY")
 api_base = os.getenv("LANGFUSE_HOST")
 llm_model_path = os.getenv("LLM_MODEL_PATH")
 db_path = os.getenv("DB_PATH")
+traces_export_path = os.getenv("TRACES_EXPORT_PATH")
+
+import httpx
+import os
+
+# Ensure `LANGFUSE_HOST` points to the internal URL of langfuse-server in Docker
+langfuse_host = os.getenv("LANGFUSE_HOST", "http://langfuse-server:3000")
+
 
 # Initialize Langfuse with a sample rate of 0.2
 langfuse = Langfuse(sample_rate=0.2)
+langfuse.auth_check()
 
 
 # Fetch traces using langfuse library method
-def fetch_and_export_traces(file_path="traces_export.csv"):
+def fetch_and_export_traces(file_path="traces.csv"):
     page = 1
     page_end = False
     # Initialize list for processed trace dictionaries
@@ -99,61 +111,72 @@ def get_score(score_id):
         score_comment = score_data.get("comment")
         return {"name" : score_name, "value": score_value, "comment": score_comment}
     else:
-        print(f"Failed to retrieve score. Status Code: {response.status_code}, Response: {response.text}")
+        logger.info(f"Failed to retrieve score. Status Code: {response.status_code}, Response: {response.text}")
         return None
 
-def import_traces(file_path="traces.csv"):
-    # List to store the traces from the CSV file
-    imported_traces = []
+def import_traces(file_path=traces_export_path):
+    # Dataframe output
+    traces_df=pd.DataFrame()
 
-    # Read the CSV file
-    with open(file_path, mode="r", newline="") as file:
-        reader = csv.DictReader(file)  # Create a reader for the CSV file
-        
-        # Iterate over each row (trace) in the CSV
-        for row in reader:
-            # Extract metadata and parse it (assuming it's stored as a JSON-like string)
-            try:
-                # Preprocess the metadata to fix the single quote issue
-                metadata_str = row["metadata"]
-                metadata_str = fix_json_quotes(metadata_str)  # Fix the quotes
-                metadata = json.loads(metadata_str)  
-            except json.JSONDecodeError:
-                metadata = {}
-
-            # Extract other fields from the CSV row
-            session_id = row["sessionId"]
-            user_id = row["userId"]
-
-            # Extract the 'question', 'context', and 'response' from metadata 
-            question = metadata.get("question", "")  # Get question from metadata
-            conversation_context = metadata.get("conversation_context", "")  # Get context from metadata
-            response_content = metadata.get("content", "")  # Get the response from the CSV column (or metadata if available)
-
-
-            # Create the Langfuse trace object
-            trace = langfuse.trace(name='import',metadata=metadata, session_id=session_id, user_id=user_id)
-
-             # retrieve the relevant chunks
-            trace.span(
-                name = "generation", input={'question': question, 'context': conversation_context}, output={'response': response_content}
-            )
-
-            # Process score details if they exist
-            score_names = row.get('score_names', '').split(', ')  # Extract score names
+    try:
+        # Read the CSV file
+        with open(file_path, mode="r", newline="") as file:
+            reader = csv.DictReader(file)  # Create a reader for the CSV file
             
-            # For each score name, fetch its details
-            for score_name in score_names:
-                # Find the corresponding score ID from the row (assumed that it follows the naming convention)
-                score_id_field = row[f'{score_name}_id']
-                score_value_field = float(row[f'{score_name}_value'])# if row[f'{score_name}_value'].isnumeric() else row[f'{score_name}_value']
-                score_comment_field = row[f'{score_name}_comment']
+            # Iterate over each row (trace) in the CSV
+            for row in reader:
+                # Extract metadata and parse it (assuming it's stored as a JSON-like string)
+                try:
+                    # Preprocess the metadata to fix the single quote issue
+                    metadata_str = row["metadata"]
+                    metadata_str = fix_json_quotes(metadata_str)  # Fix the quotes
+                    metadata = json.loads(metadata_str)  
+                except json.JSONDecodeError:
+                    metadata = {}
 
-                # Fill the trace metrics
-                trace.score(name=score_name, value=score_value_field,comment = score_comment_field)
+                # Extract other fields from the CSV row
+                session_id = row["sessionId"]
+                user_id = row["userId"]
 
-    # Convert the list of dictionaries to a DataFrame, for visualization.
-    traces_df = pd.read_csv(file_path)
+                # Extract the 'question', 'context', and 'response' from metadata 
+                question = metadata.get("question", "")  # Get question from metadata
+                conversation_context = metadata.get("conversation_context", "")  # Get context from metadata
+                response_content = metadata.get("content", "")  # Get the response from the CSV column (or metadata if available)
+
+
+                # Create the Langfuse trace object
+                trace = langfuse.trace(name='import',metadata=metadata, session_id=session_id, user_id=user_id)
+
+                # retrieve the relevant chunks
+                trace.span(
+                    name = "generation", input={'question': question, 'context': conversation_context}, output={'response': response_content}
+                )
+
+                # Process score details if they exist
+                score_names = row.get('score_names', '').split(', ')  # Extract score names
+                
+                # For each score name, fetch its details
+                for score_name in score_names:
+                    # Find the corresponding score ID from the row (assumed that it follows the naming convention)
+                    score_id_field = row[f'{score_name}_id']
+                    score_value_field = float(row[f'{score_name}_value'])# if row[f'{score_name}_value'].isnumeric() else row[f'{score_name}_value']
+                    score_comment_field = row[f'{score_name}_comment']
+
+                    # Fill the trace metrics
+                    trace.score(name=score_name, value=score_value_field,comment = score_comment_field)
+
+            # Convert the list of dictionaries to a DataFrame, for visualization.
+            traces_df = pd.read_csv(file_path)
+
+    except FileNotFoundError:
+        logger.info(f"Error: The file '{file_path}' was not found.")
+    except PermissionError:
+        logger.info(f"Error: Permission denied for file '{file_path}'.")
+    except csv.Error as e:
+        logger.info(f"Error reading CSV file: {e}")
+    except Exception as e:
+        logger.info(f"An unexpected error in import_trace occurred: {e}")
+
     return traces_df
 
 # Function to preprocess metadata to fix single quotes in JSON

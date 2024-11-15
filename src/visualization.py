@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 
 # Suppress verbose debug messages from Matplotlib
+logger =  logging.getLogger(__name__)
 logging.getLogger('matplotlib').setLevel(logging.WARNING)
 
 def visualize_evaluation(eval_df, metrics_dict):
@@ -54,32 +55,35 @@ def compute_score_means_by_bot(trace_df):
 
 # Function to visualize the mean scores by sessionId (bot id) for each metric
 def visualize_score_means_by_bot(trace_df):
-    # Compute the mean scores by sessionId (bot id)
-    avg_scores_by_session = compute_score_means_by_bot(trace_df)
+    try:
+        # Compute the mean scores by sessionId (bot id)
+        avg_scores_by_session = compute_score_means_by_bot(trace_df)
 
-    num_metrics = len(avg_scores_by_session.columns)
-    blues = plt.cm.Blues(np.linspace(0.4, 0.8, num_metrics))  # Custom range of blues
+        num_metrics = len(avg_scores_by_session.columns)
+        blues = plt.cm.Blues(np.linspace(0.4, 0.8, num_metrics))  # Custom range of blues
+        
+        # Create a bar plot for each metric
+        avg_scores_by_session.plot(kind='bar', figsize=(12, 8), color=blues, width=0.8)
 
-    # Start interactive mode
-    plt.ion()
+        # Add labels and title
+        plt.title('Average Evaluation Scores for Each Metric by Bot')
+        plt.xlabel('Bot')
+        plt.ylabel('Mean Score')
 
-    # Create a bar plot for each metric
-    avg_scores_by_session.plot(kind='bar', figsize=(12, 8), color=blues, width=0.8)
+        # Rotate x-axis labels for better readability
+        plt.xticks(rotation=0, ha='left')
 
-    # Add labels and title
-    plt.title('Average Evaluation Scores for Each Metric by Bot')
-    plt.xlabel('Bot')
-    plt.ylabel('Mean Score')
+        # Add gridlines for better readability
+        plt.grid(True, axis='y', linestyle='--', alpha=0.7)
 
-    # Rotate x-axis labels for better readability
-    plt.xticks(rotation=0, ha='left')
+        # Adjust layout to ensure everything fits well
+        plt.tight_layout()
 
-    # Add gridlines for better readability
-    plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+        # Save the plot as a PNG file
+        plt.savefig("./bot_metrics_comparison.png")
 
-    # Adjust layout to ensure everything fits well
-    plt.tight_layout()
-
-    # Show the plot
-    plt.show()
-    plt.pause(0.001)
+    # close the plot to free memory 
+        plt.close()
+    
+    except Exception as e:
+        logger.info(f"An unexpected error occurred in visualize_score_means_by_bot: {e}")
