@@ -7,10 +7,9 @@ __pycache__/
 *.csv
 
 # Ignore specific folders
-src/gpt4all/
 src/langfuse/
 src/__pycache__
 brias_env/
 
 # Ignore .env
-.env
+#.env
