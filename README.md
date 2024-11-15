@@ -65,7 +65,7 @@ This project provides a framework to evaluate the performance of chatbots using 
 ## Usage
 
 1. **Populate Langfuse traces**: 
-   The `main.py` script first loads saved traces from the CSV file (`traces_export.csv`) into the Langfuse server. These traces have the name 'import' in Langfuse. The Session tag differentiates the two bots (ALX AiCE and Savanna).
+   The `main.py` script first loads saved traces from the CSV file (`traces_export.csv`) into the Langfuse server. These traces have the name 'import' in Langfuse. The Session tag differentiates the two bots.
 
 2. **Visualization**:
    The results of the load traces are visualized through charts that show mean scores for each bot across the various evaluation metrics.
@@ -133,9 +133,9 @@ This project provides a framework to evaluate the performance of chatbots using 
 
 The project is designed with flexibility in mind, enabling future enhancements and integrations. Below are some key areas for future improvements:
 
-### 1. **Fine-tuning Using ALX Internal Documents**
+### 1. **Fine-tuning Using Internal Documents**
 
-   - **Objective**: Leverage ALX's internal documents or any proprietary datasets to fine-tune the existing language model (LLM), improving its performance in response evaluation (accuracy for instance) or on specialized tasks.
+   - **Objective**: Leverage internal documents or any proprietary datasets to fine-tune the existing language model (LLM), improving its performance in response evaluation (accuracy for instance) or on specialized tasks.
 
 ### 2. **Exploring Other Models**
 
