@@ -9,14 +9,6 @@ This project provides a framework to evaluate the performance of chatbots using 
 - **Visualization**: Visualize performance metrics, including mean scores by bot for each metric.
 - **Simulation**: Simulate a live environment by fetching random traces, evaluating performance in real-time, and saving results.
 
-## Project Structure
-
-- **`main.py`**: The entry point of the project, where the trace population, simulation, and evaluation occur.
-- **`database_interface.py`**: Contains functions to connect to the database and fetch random data for evaluation.
-- **`evaluation.py`**: Contains the function `evaluate_sample` that evaluates the chatbot traces based on different metrics.
-- **`visualization.py`**: Contains functions to visualize evaluation results, such as `visualize_evaluation` and `visualize_score_means_by_bot`.
-- **`traces_io.py`**: Functions to import traces from CSV files.
-- **`config.py`**: Configuration file containing paths, database details, and other settings.
   
 ## Installation
 
@@ -91,7 +83,7 @@ This project provides a framework to evaluate the performance of chatbots using 
     The Langfuse interface provides tools for exploring and analyzing individual traces, allowing you to drill down into specific interactions. This includes details on response times, metrics scored, and other performance indicators for comprehensive trace analysis.
 
 
-### Architecture
+### Projet structure
       ├── data/ # Directory for data storage 
 
       ├── gpt4all/ # GPT-4All model files (or other models) 
@@ -113,6 +105,14 @@ This project provides a framework to evaluate the performance of chatbots using 
       ├── docker-compose.yml # Docker Compose file for multi-container setup 
 
       └── Dockerfile # Dockerfile for containerizing the app
+
+- **`main.py`**: The entry point of the project, where the trace population, simulation, and evaluation occur.
+- **`database_interface.py`**: Contains functions to connect to the database and fetch random data for evaluation.
+- **`llm_interface.py`**: Contains functions to load the LLM model and query it.
+- **`evaluation.py`**: Contains the function `evaluate_sample` that evaluates the chatbot traces based on different metrics.
+- **`visualization.py`**: Contains functions to visualize evaluation results, such as `visualize_evaluation` and `visualize_score_means_by_bot`.
+- **`traces_io.py`**: Functions to import traces from CSV files.
+- **`config.py`**: Configuration file containing paths, database details, and other settings.
 
 ### Main Technologies Used
 
