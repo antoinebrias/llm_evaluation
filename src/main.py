@@ -33,8 +33,8 @@ def main():
     # sample_size: number of random samples from the database
     # history_depth: number of messages to be retrieved in the context
     bots = [
-        {"name": "Savanna/Portal Support Bot", "sample_size": 10, "history_depth": 2},
-        {"name": "ALX AiCE", "sample_size": 10, "history_depth": 10},
+        {"name": "Bot A", "sample_size": 10, "history_depth": 2},
+        {"name": "Bot B", "sample_size": 10, "history_depth": 10},
     ]
 
     for bot in bots:
